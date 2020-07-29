@@ -20,6 +20,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.core.content.FileProvider;
 
 import com.facebook.react.ReactInstanceManager;
 import com.facebook.react.ReactInstanceManagerBuilder;
@@ -39,7 +40,7 @@ public class ReactNativeActivity extends AppCompatActivity {
     private long mDownloadId;
     private DownloadManager mDownloadManager;
     private ReactInstanceManager mReactInstanceManager;
-    public static final String JS_BUNDLE_REMOTE_URL = "http://public.smoex.com/index.android.bundle";
+    public static final String JS_BUNDLE_REMOTE_URL = "https://public.smoex.com/index.android.bundle";
     public static final String JS_BUNDLE_LOCAL_FILE = "index.android.bundle";
     public static final String JS_BUNDLE_REACT_UPDATE_PATH = Environment.getExternalStorageDirectory().toString() + File.separator + "react_native_update";
     public static final String JS_BUNDLE_LOCAL_PATH = JS_BUNDLE_REACT_UPDATE_PATH + File.separator + JS_BUNDLE_LOCAL_FILE;
@@ -125,16 +126,26 @@ public class ReactNativeActivity extends AppCompatActivity {
 
         DownloadManager.Request request = new DownloadManager.Request(Uri.parse(JS_BUNDLE_REMOTE_URL));
         request.setAllowedNetworkTypes(DownloadManager.Request.NETWORK_WIFI);
-        request.setDestinationUri(Uri.parse("file://" + JS_BUNDLE_LOCAL_PATH));
+//        Uri downloadUri = FileProvider.getUriForFile(this, "com.bbq.test.fileProvider", file);
+//        request.setDestinationUri(downloadUri);
+        request.setDestinationUri(Uri.fromFile(file));
+//        request.setDestinationInExternalPublicDir(JS_BUNDLE_REACT_UPDATE_PATH, JS_BUNDLE_LOCAL_FILE);
         mDownloadManager = (DownloadManager) getSystemService(Context.DOWNLOAD_SERVICE);
         Toast.makeText(this, "准备下载", Toast.LENGTH_SHORT).show();
         mDownloadId = mDownloadManager.enqueue(request);
+        Log.i("xxxxx", "" + mDownloadId);
 
     }
 
     private void initDownloadManager() {
         mDownloadCompleteReceiver = new CompleteReceiver();
         registerReceiver(mDownloadCompleteReceiver, new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        unregisterReceiver(mDownloadCompleteReceiver);
     }
 
     private class CompleteReceiver extends BroadcastReceiver {

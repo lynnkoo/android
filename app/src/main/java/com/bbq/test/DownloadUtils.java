@@ -12,6 +12,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 import java.io.File;
+import java.util.Objects;
 
 /**
  * m.poizon.com Inc.
@@ -22,22 +23,21 @@ import java.io.File;
  */
 public class DownloadUtils {
     public static final String TAG = "DownloadUtils";
+    public static String DEFAULT_PATH_PARENT = null;
     //下载器
     private DownloadManager downloadManager;
     private Context mContext;
     //下载的ID
     private long downloadId;
-    private String name;
     private String pathstr;
 
-    public DownloadUtils(Context context, String url, String name) {
+    public DownloadUtils(Context context) {
         this.mContext = context;
-        downloadAPK(url, name);
-        this.name = name;
+        DEFAULT_PATH_PARENT = Objects.requireNonNull(context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)).getAbsolutePath();
     }
 
     //下载apk
-    private void downloadAPK(String url, String name) {
+    public void download(String url, String name) {
         //创建下载任务
         DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));
         //移动网络情况下是否允许漫游
@@ -49,7 +49,10 @@ public class DownloadUtils {
         request.setVisibleInDownloadsUi(true);
 
         //设置下载的路径
-        File file = new File(mContext.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS), name);
+        File file = new File(DEFAULT_PATH_PARENT, name);
+        if (file.exists()) {
+            file.delete();
+        }
         request.setDestinationUri(Uri.fromFile(file));
         pathstr = file.getAbsolutePath();
         //获取DownloadManager
@@ -63,6 +66,12 @@ public class DownloadUtils {
         //注册广播接收者，监听下载状态
         mContext.registerReceiver(receiver,
                 new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
+    }
+
+    private DownloadListener listener;
+
+    public void setDownloadListener(DownloadListener listener) {
+        this.listener = listener;
     }
 
     //广播监听下载的各个状态
@@ -94,13 +103,19 @@ public class DownloadUtils {
                 //下载完成
                 case DownloadManager.STATUS_SUCCESSFUL:
                     //下载完成安装APK
-                    Toast.makeText(mContext, "下载成功", Toast.LENGTH_SHORT).show();
                     Log.i(TAG, "下载成功! path= " + pathstr);
+                    if (listener != null) {
+                        listener.onSuccess(pathstr);
+                    }
                     cursor.close();
+                    mContext.unregisterReceiver(receiver);
                     break;
                 //下载失败
                 case DownloadManager.STATUS_FAILED:
-                    Toast.makeText(mContext, "下载失败", Toast.LENGTH_SHORT).show();
+                    Log.i(TAG, "下载失败!");
+                    if (listener != null) {
+                        listener.onFailed();
+                    }
                     cursor.close();
                     mContext.unregisterReceiver(receiver);
                     break;
@@ -108,6 +123,11 @@ public class DownloadUtils {
         }
     }
 
+    public interface DownloadListener {
+        void onSuccess(String path);
+
+        void onFailed();
+    }
 
 
 }

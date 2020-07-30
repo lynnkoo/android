@@ -2,7 +2,6 @@ package com.bbq.test;
 
 import android.os.Bundle;
 import android.os.Environment;
-import android.util.Log;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
@@ -14,6 +13,8 @@ import com.facebook.react.ReactRootView;
 import com.facebook.react.common.LifecycleState;
 import com.facebook.react.shell.MainReactPackage;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.io.File;
 
 public class ReactNativeActivity extends AppCompatActivity {
@@ -24,12 +25,32 @@ public class ReactNativeActivity extends AppCompatActivity {
     public static final String JS_BUNDLE_LOCAL_FILE = "index.android.bundle";
     public static final String JS_BUNDLE_REACT_UPDATE_PATH = Environment.getExternalStorageDirectory().toString() + File.separator + "Android/data/com.bbq.test/files/Download/index.android.bundle";
     public static final String JS_BUNDLE_LOCAL_PATH = JS_BUNDLE_REACT_UPDATE_PATH + File.separator + JS_BUNDLE_LOCAL_FILE;
+    private ReactInstanceManagerBuilder builder;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        File file = getBundleFile();
+        if (file.exists()) {
+            loadBundleFromFile(file);
+        } else {
+            startDownload();
+        }
+    }
 
-        ReactInstanceManagerBuilder builder = ReactInstanceManager.builder()
+    private void loadBundleFromFile(File file) {
+        builder = initBuilder();
+        builder.setJSBundleFile(file.getAbsolutePath());
+        setContentView();
+    }
+
+    @NotNull
+    private File getBundleFile() {
+        return new File(DownloadUtils.getDefaultPathParent(this), JS_BUNDLE_LOCAL_FILE);
+    }
+
+    private ReactInstanceManagerBuilder initBuilder() {
+       return ReactInstanceManager.builder()
                 .setApplication(getApplication())
                 .setCurrentActivity(this)
                 // assets 目录下文件
@@ -39,29 +60,13 @@ public class ReactNativeActivity extends AppCompatActivity {
                 .addPackage(new MainReactPackage())
                 .setUseDeveloperSupport(BuildConfig.DEBUG)
                 .setInitialLifecycleState(LifecycleState.RESUMED);
+    }
 
-        File file = new File(DownloadUtils.DEFAULT_PATH_PARENT, JS_BUNDLE_LOCAL_FILE);
-        Log.i("file path", file.getPath());
-
-        if (file.exists()) {
-            /** ReactNativeHost.java
-             * Returns a custom path of the bundle file. This is used in cases the bundle should be loaded
-             * from a custom path. By default it is loaded from Android assets, from a path specified by
-             * {@link getBundleAssetName}. e.g. "file://sdcard/myapp_cache/index.android.bundle"
-             */
-            builder.setJSBundleFile(file.getAbsolutePath());
-        } else {
-            builder.setBundleAssetName(JS_BUNDLE_LOCAL_FILE);
-        }
-
-        // /storage/emulated/0/react_native_update/index.android.bundle
-        // /storage/emulated/0/Android/data/com.bbq.test/files/Download/index.android.bundle
+    private void setContentView() {
         mReactRootView = new ReactRootView(this);
         mReactInstanceManager = builder.build();
         mReactRootView.startReactApplication(mReactInstanceManager, "AndroidTestRN", null);
         setContentView(mReactRootView);
-
-        startDownload();
     }
 
     public void startDownload() {
@@ -71,6 +76,7 @@ public class ReactNativeActivity extends AppCompatActivity {
             @Override
             public void onSuccess(String path) {
                 Toast.makeText(ReactNativeActivity.this, "下载成功！ path: " + path, Toast.LENGTH_LONG).show();
+                loadBundleFromFile(getBundleFile());
             }
 
             @Override

@@ -28,7 +28,7 @@ import java.util.Objects;
  */
 public class DownloadUtils implements LifecycleObserver {
     public static final String TAG = "DownloadUtils";
-    public static String DEFAULT_PATH_PARENT = null;
+    private static String DEFAULT_PATH_PARENT = null;
     //下载器
     private DownloadManager downloadManager;
     private Context mContext;
@@ -144,5 +144,7 @@ public class DownloadUtils implements LifecycleObserver {
         Log.d(TAG, "onDestroy");
     }
 
-
+    public static String getDefaultPathParent(Context context){
+        return Objects.requireNonNull(context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)).getAbsolutePath();
+    }
 }

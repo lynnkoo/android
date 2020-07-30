@@ -15,5 +15,10 @@ class MainActivity : AppCompatActivity() {
             val intent = Intent(this, ReactNativeActivity::class.java)
             startActivity(intent)
         }
+
+        findViewById<Button>(R.id.open_download).setOnClickListener {
+            val intent = Intent(this, DownloadActivity::class.java)
+            startActivity(intent)
+        }
     }
 }

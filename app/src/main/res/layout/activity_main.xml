@@ -20,8 +20,17 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Open React Activity"
+        android:textAllCaps="false"
         tools:layout_editor_absoluteX="55dp"
         tools:layout_editor_absoluteY="48dp"
         tools:ignore="MissingConstraints" />
-
+    <Button
+        android:id="@+id/open_download"
+        android:layout_width="wrap_content"
+        android:textAllCaps="false"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toBottomOf="@id/open_rn"
+        app:layout_constraintLeft_toLeftOf="@id/open_rn"
+        android:text="Open Download Activity"
+        tools:ignore="MissingConstraints" />
 </androidx.constraintlayout.widget.ConstraintLayout>

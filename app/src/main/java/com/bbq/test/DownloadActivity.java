@@ -17,6 +17,7 @@ public class DownloadActivity extends AppCompatActivity {
 
     public void startDownload(View view) {
         DownloadUtils downloadUtils = new DownloadUtils(this);
+        downloadUtils.setLifecycleOwner(this);
         downloadUtils.setDownloadListener(new DownloadUtils.DownloadListener() {
             @Override
             public void onSuccess(String path) {

@@ -11,6 +11,11 @@ import android.os.Environment;
 import android.util.Log;
 import android.widget.Toast;
 
+import androidx.lifecycle.Lifecycle;
+import androidx.lifecycle.LifecycleObserver;
+import androidx.lifecycle.LifecycleOwner;
+import androidx.lifecycle.OnLifecycleEvent;
+
 import java.io.File;
 import java.util.Objects;
 
@@ -21,7 +26,7 @@ import java.util.Objects;
  * @author lizhenquan
  * @contact lizhenquan@theduapp.com
  */
-public class DownloadUtils {
+public class DownloadUtils implements LifecycleObserver {
     public static final String TAG = "DownloadUtils";
     public static String DEFAULT_PATH_PARENT = null;
     //下载器
@@ -127,6 +132,16 @@ public class DownloadUtils {
         void onSuccess(String path);
 
         void onFailed();
+    }
+
+    // 内部处理生命周期事件
+    public void setLifecycleOwner(LifecycleOwner lifecycleOwner) {
+        lifecycleOwner.getLifecycle().addObserver(this);
+    }
+
+    @OnLifecycleEvent(Lifecycle.Event.ON_DESTROY)
+    private void onDestroy() {
+        Log.d(TAG, "onDestroy");
     }
 
 

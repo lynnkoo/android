@@ -2,6 +2,7 @@ package com.bbq.test;
 
 import android.os.Bundle;
 import android.os.Environment;
+import android.util.Log;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
@@ -21,9 +22,8 @@ public class ReactNativeActivity extends AppCompatActivity {
     private ReactInstanceManager mReactInstanceManager;
     public static final String JS_BUNDLE_REMOTE_URL = "https://public.smoex.com/index.android.bundle";
     public static final String JS_BUNDLE_LOCAL_FILE = "index.android.bundle";
-    public static final String JS_BUNDLE_REACT_UPDATE_PATH = Environment.getExternalStorageDirectory().toString() + File.separator + "react_native_update";
+    public static final String JS_BUNDLE_REACT_UPDATE_PATH = Environment.getExternalStorageDirectory().toString() + File.separator + "Android/data/com.bbq.test/files/Download/index.android.bundle";
     public static final String JS_BUNDLE_LOCAL_PATH = JS_BUNDLE_REACT_UPDATE_PATH + File.separator + JS_BUNDLE_LOCAL_FILE;
-
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -40,7 +40,22 @@ public class ReactNativeActivity extends AppCompatActivity {
                 .setUseDeveloperSupport(BuildConfig.DEBUG)
                 .setInitialLifecycleState(LifecycleState.RESUMED);
 
+        File file = new File(DownloadUtils.DEFAULT_PATH_PARENT, JS_BUNDLE_LOCAL_FILE);
+        Log.i("file path", file.getPath());
 
+        if (file.exists()) {
+            /** ReactNativeHost.java
+             * Returns a custom path of the bundle file. This is used in cases the bundle should be loaded
+             * from a custom path. By default it is loaded from Android assets, from a path specified by
+             * {@link getBundleAssetName}. e.g. "file://sdcard/myapp_cache/index.android.bundle"
+             */
+            builder.setJSBundleFile(file.getAbsolutePath());
+        } else {
+            builder.setBundleAssetName(JS_BUNDLE_LOCAL_FILE);
+        }
+
+        // /storage/emulated/0/react_native_update/index.android.bundle
+        // /storage/emulated/0/Android/data/com.bbq.test/files/Download/index.android.bundle
         mReactRootView = new ReactRootView(this);
         mReactInstanceManager = builder.build();
         mReactRootView.startReactApplication(mReactInstanceManager, "AndroidTestRN", null);
